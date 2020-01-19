@@ -86,7 +86,7 @@ function allEmp() {
     connection.query(getAll, function (err, res) {
         if (err) throw err;
         console.table(res)
-go()
+
     });
 };
 
@@ -95,7 +95,7 @@ function allDept() {
     connection.query(getAll, function (err, res) {
         if (err) throw err;
         console.table(res)
-go()
+
     });
 };
 
@@ -104,8 +104,68 @@ function allRoles() {
     connection.query(getAll, function (err, res) {
         if (err) throw err;
         console.table(res)
-go()
     });
 };
+
+function addDept() {
+
+    inquirer
+        .prompt({
+            name: "addDept",
+            type: "input",
+            message: "What department would you like to add?",
+        })
+        .then(function (answer) {
+            var setDept = "INSERT INTO department SET ?"
+            connection.query(setDept, {
+                name: answer.addDept
+            },
+                function (err, res) {
+                    if (err) throw err;
+                    // console.log("succesfully added")
+                });
+            go()
+        });
+
+};
+
+function addRole() {
+
+    inquirer
+        .prompt({
+            name: "roleName",
+            type: "input",
+            message: "What is the name of the role would you like to add?",
+        })
+        .then(function (answer) {
+            var setRole = "INSERT INTO role SET ?"
+            connection.query(setRole, {
+                title: answer.roleName,
+            },
+                function (err, res) {
+                    if (err) throw err;
+                    // console.log("succesfully added")
+                });
+        }).prompt({
+            name: "salary",
+            type: "input",
+            message: "What is the salary of this role?",
+        })
+        .then(function (answer) {
+            connection.query(setRole, {
+                salary: answer.salary
+            },
+            function (err, res) {
+                if (err) throw err;
+            })
+        })
+
+};
+
+
+
+
+
+
 
 
