@@ -27,5 +27,5 @@ it will prompt you for some information, and you can add this new dept, role, or
 
 If update employee role is chosen, you can pick an employee from a list of all the employees currently in the database, and update the role of the specific employee chosen.
 
-![Alt Text](https://imgur.com/gallery/XSpXOTC)
+![Alt Text](https://ezgif.com/video-to-gif/ezgif-3-934a6db6a0de.webm)
 
