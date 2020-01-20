@@ -86,7 +86,6 @@ function allEmp() {
     connection.query(getAll, function (err, res) {
         if (err) throw err;
         console.table(res)
-
     });
 };
 
@@ -95,7 +94,7 @@ function allDept() {
     connection.query(getAll, function (err, res) {
         if (err) throw err;
         console.table(res)
-
+        runSearch()
     });
 };
 
@@ -104,6 +103,7 @@ function allRoles() {
     connection.query(getAll, function (err, res) {
         if (err) throw err;
         console.table(res)
+        runSearch()
     });
 };
 
@@ -122,7 +122,8 @@ function addDept() {
             },
                 function (err, res) {
                     if (err) throw err;
-                    // console.log("succesfully added")
+                    console.log("Your department has been succesfully added")
+                    runSearch()
                 });
             go()
         });
@@ -130,37 +131,151 @@ function addDept() {
 };
 
 function addRole() {
-
+    // prompt for info about the item being put up for auction
     inquirer
-        .prompt({
-            name: "roleName",
-            type: "input",
-            message: "What is the name of the role would you like to add?",
-        })
-        .then(function (answer) {
-            var setRole = "INSERT INTO role SET ?"
-            connection.query(setRole, {
-                title: answer.roleName,
+        .prompt([
+            {
+                name: "title",
+                type: "input",
+                message: "What is the role you would like to submit?"
             },
-                function (err, res) {
+            {
+                name: "salary",
+                type: "input",
+                message: "What is the salary of this position?"
+            },
+            {
+                name: "department",
+                type: "input",
+                message: "what is the department?",
+                validate: function (value) {
+                    if (isNaN(value) === false) {
+                        return true;
+                    }
+                    return false;
+                }
+            }
+        ])
+        .then(function (answer) {
+            // when finished prompting, insert a new item into the db with that info
+            connection.query(
+                "INSERT INTO role SET ?",
+                {
+                    title: answer.title,
+                    salary: answer.salary,
+                    department_id: answer.department,
+                },
+                function (err) {
                     if (err) throw err;
-                    // console.log("succesfully added")
-                });
-        }).prompt({
-            name: "salary",
-            type: "input",
-            message: "What is the salary of this role?",
-        })
-        .then(function (answer) {
-            connection.query(setRole, {
-                salary: answer.salary
+                    console.log("Your role was created successfully!");
+                    // re-prompt the user for if they want to bid or post
+                    runSearch()
+                }
+            );
+        });
+}
+function addEmployee() {
+    // prompt for info about the item being put up for auction
+    inquirer
+        .prompt([
+            {
+                name: "first",
+                type: "input",
+                message: "What is the first name of this employee?"
             },
-            function (err, res) {
-                if (err) throw err;
-            })
-        })
-
+            {
+                name: "last",
+                type: "input",
+                message: "What is the last name of this employee?"
+            },
+            {
+                name: "roleID",
+                type: "input",
+                message: "What is the role ID of this employee?"
+            },
+            {
+                name: "managerID",
+                type: "input",
+                message: "What is the manager id of this employee?"
+            },
+        ])
+        .then(function (answer) {
+            // when finished prompting, insert a new item into the db with that info
+            connection.query(
+                "INSERT INTO employee SET ?",
+                {
+                    first_name: answer.first,
+                    last_name: answer.last,
+                    role_id: answer.roleID,
+                    manager_id: answer.managerID
+                },
+                function (err) {
+                    if (err) throw err;
+                    console.log("Your employee was created successfully!");
+                    // re-prompt the user for if they want to bid or post
+                    runSearch()
+                }
+            );
+        });
 };
+
+function updateEmployeeRole() {
+    // query the database for all items being auctioned
+    connection.query("SELECT * FROM employee", function(err, results) {
+      if (err) throw err;
+      // once you have the items, prompt the user for which they'd like to bid on
+      inquirer
+        .prompt([
+          {
+            name: "choice",
+            type: "rawlist",
+            choices: function() {
+              var choiceArray = [];
+              for (var i = 0; i < results.length; i++) {
+                choiceArray.push(results[i].first_name);
+              }
+              return choiceArray;
+            },
+            message: "What employee would you like to update?"
+          },
+          {
+            name: "newRoleID",
+            type: "input",
+            message: "what is the new role id?"
+          }
+        ])
+        .then(function(answer) {
+          // get the information of the chosen item
+          var chosenItem;
+          for (var i = 0; i < results.length; i++) {
+            if (results[i].first_name === answer.choice) {
+              chosenItem = results[i];
+            }
+          }
+  
+          // determine if bid was high enough
+          
+            // bid was high enough, so update db, let the user know, and start over
+            connection.query(
+              "UPDATE employee SET ? WHERE ?",
+              [
+                {
+                  role_id: answer.newRoleID
+                },
+                {
+                  id: chosenItem.id
+                }
+              ],
+              function(error) {
+                if (error) throw err;
+                console.log("employee succesfully updated!");
+                runSearch()
+              }
+            );
+          }
+        );
+    });
+  }
 
 
 
