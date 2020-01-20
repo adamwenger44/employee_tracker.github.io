@@ -3,6 +3,7 @@ var mysql = require("mysql");
 var inquirer = require("inquirer");
 var consoleTable = require("console.table");
 
+// establishing connection to mySql database
 var connection = mysql.createConnection({
     host: "localhost",
 
@@ -17,13 +18,14 @@ var connection = mysql.createConnection({
     database: "company_db"
 });
 
+// confirming that we have connected 
 connection.connect(function (err) {
     if (err) throw err;
     console.log("connected as id " + connection.threadId);
     go()
 });
 
-
+// first prompt to pop, user chooses from list what to do
 function runSearch() {
     inquirer
         .prompt({
@@ -37,10 +39,10 @@ function runSearch() {
                 "add department",
                 "add role",
                 "add employee",
-                "update employee role"
-
+                "update employee role",
             ]
         })
+        // depending on what is chosen, will determine what function is run
         .then(function (answer) {
             switch (answer.choose) {
                 case "view employees":
@@ -70,8 +72,6 @@ function runSearch() {
                 case "update employee role":
                     updateEmployeeRole();
                     break;
-
-
             }
         });
 }
@@ -80,15 +80,17 @@ function go() {
     runSearch()
 }
 
-
+// if user wants to view a chart of all employees
 function allEmp() {
     var getAll = "SELECT * FROM employee"
     connection.query(getAll, function (err, res) {
         if (err) throw err;
         console.table(res)
+        runSearch()
     });
 };
 
+// if user wants to see a chart of all departments
 function allDept() {
     var getAll = "SELECT * FROM department"
     connection.query(getAll, function (err, res) {
@@ -98,6 +100,7 @@ function allDept() {
     });
 };
 
+// if user wants to see a chart of all the roles
 function allRoles() {
     var getAll = "SELECT * FROM role"
     connection.query(getAll, function (err, res) {
@@ -107,14 +110,17 @@ function allRoles() {
     });
 };
 
+// if user wants to add a department
 function addDept() {
 
     inquirer
+        // will ask user for the name of the department
         .prompt({
             name: "addDept",
             type: "input",
             message: "What department would you like to add?",
         })
+        // then it will insert that back into the database using users response
         .then(function (answer) {
             var setDept = "INSERT INTO department SET ?"
             connection.query(setDept, {
@@ -130,9 +136,11 @@ function addDept() {
 
 };
 
+// if user wants to add role 
 function addRole() {
     // prompt for info about the item being put up for auction
     inquirer
+        // will ask user for the name, salary, and department of that role
         .prompt([
             {
                 name: "title",
@@ -156,8 +164,8 @@ function addRole() {
                 }
             }
         ])
+        // then it will insert that information back into database
         .then(function (answer) {
-            // when finished prompting, insert a new item into the db with that info
             connection.query(
                 "INSERT INTO role SET ?",
                 {
@@ -168,14 +176,15 @@ function addRole() {
                 function (err) {
                     if (err) throw err;
                     console.log("Your role was created successfully!");
-                    // re-prompt the user for if they want to bid or post
                     runSearch()
                 }
             );
         });
 }
+
+// if user wants to add employee
 function addEmployee() {
-    // prompt for info about the item being put up for auction
+    // prompt for info about the employee
     inquirer
         .prompt([
             {
@@ -219,68 +228,60 @@ function addEmployee() {
         });
 };
 
+// if user wants to update the role of an employee
 function updateEmployeeRole() {
-    // query the database for all items being auctioned
-    connection.query("SELECT * FROM employee", function(err, results) {
-      if (err) throw err;
-      // once you have the items, prompt the user for which they'd like to bid on
-      inquirer
-        .prompt([
-          {
-            name: "choice",
-            type: "rawlist",
-            choices: function() {
-              var choiceArray = [];
-              for (var i = 0; i < results.length; i++) {
-                choiceArray.push(results[i].first_name);
-              }
-              return choiceArray;
-            },
-            message: "What employee would you like to update?"
-          },
-          {
-            name: "newRoleID",
-            type: "input",
-            message: "what is the new role id?"
-          }
-        ])
-        .then(function(answer) {
-          // get the information of the chosen item
-          var chosenItem;
-          for (var i = 0; i < results.length; i++) {
-            if (results[i].first_name === answer.choice) {
-              chosenItem = results[i];
-            }
-          }
-  
-          // determine if bid was high enough
-          
-            // bid was high enough, so update db, let the user know, and start over
-            connection.query(
-              "UPDATE employee SET ? WHERE ?",
-              [
+    // query the database for all employees
+    connection.query("SELECT * FROM employee", function (err, results) {
+        if (err) throw err;
+        // once you have the employees, prompt the user for which they'd like to update
+        inquirer
+            .prompt([
                 {
-                  role_id: answer.newRoleID
+                    //   shows all employees for user to choose from
+                    name: "choice",
+                    type: "rawlist",
+                    choices: function () {
+                        var choiceArray = [];
+                        for (var i = 0; i < results.length; i++) {
+                            choiceArray.push(results[i].first_name);
+                        }
+                        return choiceArray;
+                    },
+                    message: "What employee would you like to update?"
                 },
                 {
-                  id: chosenItem.id
+                    name: "newRoleID",
+                    type: "input",
+                    message: "what is the new role id?"
                 }
-              ],
-              function(error) {
-                if (error) throw err;
-                console.log("employee succesfully updated!");
-                runSearch()
-              }
+            ])
+            .then(function (answer) {
+                // get the information of the chosen employee
+                var chosenItem;
+                for (var i = 0; i < results.length; i++) {
+                    if (results[i].first_name === answer.choice) {
+                        chosenItem = results[i];
+                    }
+                }
+
+                // take the info and push into database
+                connection.query(
+                    "UPDATE employee SET ? WHERE ?",
+                    [
+                        {
+                            role_id: answer.newRoleID
+                        },
+                        {
+                            id: chosenItem.id
+                        }
+                    ],
+                    function (error) {
+                        if (error) throw err;
+                        console.log("employee succesfully updated!");
+                        runSearch()
+                    }
+                );
+            }
             );
-          }
-        );
     });
-  }
-
-
-
-
-
-
-
-
+}
