@@ -27,5 +27,5 @@ it will prompt you for some information, and you can add this new dept, role, or
 
 If update employee role is chosen, you can pick an employee from a list of all the employees currently in the database, and update the role of the specific employee chosen.
 
-<blockquote class="imgur-embed-pub" lang="en" data-id="a/XSpXOTC"><a href="//imgur.com/a/XSpXOTC">project</a></blockquote>"
+<blockquote class="imgur-embed-pub" lang="en" data-id="a/XSpXOTC"><a href="//imgur.com/a/XSpXOTC">project</a></blockquote>
 
